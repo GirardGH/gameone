@@ -1,74 +1,71 @@
-import { useState, memo } from 'react';
-import diceData from '../data/gameData.js';
+import React, { useState } from 'react';
+import diceData from '../data/gameData';
+import { motion } from 'framer-motion';
 
 const Dice = () => {
-  const [dice, setDice] = useState([]);
-  const [selectedDiceIndices, setSelectedDiceIndices] = useState([]);
+  const [cardsVisible, setCardsVisible] = useState(false);
+  const [randomIndexes, setRandomIndexes] = useState([0, 0]); // Stocke les index aléatoires pour les deux premières cartes
 
-  const rollDice = () => {
-    const newDice = diceData.map((die) => {
-      const randomIndex = Math.floor(Math.random() * die.images.length);
-      return {
-        id: die.id,
-        image: die.images[randomIndex],
-        selected: false,
-      };
-    });
-    setDice(newDice);
-    setSelectedDiceIndices([]);
-  };
-
-  const selectImage = (index) => {
-    if (selectedDiceIndices.length < 3) {
-      const updatedDice = dice.map((die, i) => {
-        if (i === index) {
-          return { ...die, selected: true };
-        }
-        return die;
-      });
-
-      setSelectedDiceIndices([...selectedDiceIndices, index]);
-      setDice(updatedDice);
+  const toggleCardsVisibility = () => {
+    if (!cardsVisible) {
+      // Génère des index aléatoires pour les deux premières cartes
+      const randomIndex1 = Math.floor(Math.random() * diceData[0].images.length);
+      const randomIndex2 = Math.floor(Math.random() * diceData[1].images.length);
+      setRandomIndexes([randomIndex1, randomIndex2]);
     }
-  };
-
-  const resetGame = () => {
-    setDice([]);
-    setSelectedDiceIndices([]);
+    setCardsVisible(!cardsVisible);
   };
 
   return (
     <div>
-      <button onClick={rollDice} className="bg-blue-500 text-white px-4 py-2 mb-4">
-        Lancer les dés
+      <button onClick={toggleCardsVisibility} className="bg-gray-800 text-white px-4 py-2 mb-4">
+        {cardsVisible ? 'Cacher les cartes' : 'Tirer les cartes'}
       </button>
-      {selectedDiceIndices.length < 3 && (
-        <div className="flex justify-center flex-wrap">
-          {dice.map((die, index) => (
-            <img
-              key={die.id}
-              src={die.image}
-              alt={`Dé ${die.id}`}
-              className={`h-32 m-2 cursor-pointer ${die.selected ? 'opacity-50' : ''}`}
-              onClick={() => selectImage(index)}
-            />
+
+      {cardsVisible && (
+        <motion.div
+          className="grid grid-cols-3 gap-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          {/* Première carte avec les images du premier tableau */}
+          <motion.div
+            key={0}
+            className="w-36 h-48 bg-gray-800 relative flex items-center justify-center overflow-hidden rounded-xl shadow-md"
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            <img src={diceData[0].images[randomIndexes[0]]} alt="Image 1" className="w-1/2 h-1/2 object-contain" />
+          </motion.div>
+
+          {/* Deuxième carte avec les images du deuxième tableau */}
+          <motion.div
+            key={1}
+            className="w-36 h-48 bg-gray-800 relative flex items-center justify-center overflow-hidden rounded-xl shadow-md"
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <img src={diceData[1].images[randomIndexes[1]]} alt="Image 2" className="w-1/2 h-1/2 object-contain" />
+          </motion.div>
+
+          {Array.from({ length: 7 }).map((_, index) => (
+            <motion.div
+              key={index + 2}
+              className="w-36 h-48 bg-gray-800 relative flex items-center justify-center overflow-hidden rounded-xl shadow-md"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.1 * (index + 3) }}
+            >
+              {/* Contenu de votre carte */}
+            </motion.div>
           ))}
-        </div>
-      )}
-      <div className="mt-4 flex justify-center">
-        {selectedDiceIndices.map((selectedIndex, index) => (
-          <div key={index} className="bg-gray-200 p-4 m-2">
-            <img className='h-44' src={dice[selectedIndex].image} alt={`Image sélectionnée ${index + 1}`} />
-          </div>
-        ))}
-      </div>
-      {selectedDiceIndices.length === 3 && (
-        <button onClick={resetGame} className="bg-red-500 text-white px-4 py-2 mt-4">
-          Réinitialiser le jeu
-        </button>
+        </motion.div>
       )}
     </div>
   );
 };
 
-export default memo(Dice);
+export default Dice;
